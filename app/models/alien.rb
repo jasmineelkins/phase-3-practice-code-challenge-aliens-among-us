@@ -1,14 +1,10 @@
 class Alien < ActiveRecord::Base
-  has_many :visitations
+  has_many :visitations, dependent: :destroy
   has_many :earthlings, through: :visitations
 
   def visit(earthling)
     # creates a visitation linking earthling and this alien on today's date
-    Visitation.create(
-      date: Date.new,
-      alien_id: self.id,
-      earthling_id: earthling[:id],
-    )
+    Visitation.create(date: Date.new, alien: self, earthling: earthling)
   end
 
   def total_light_years_traveled
@@ -18,8 +14,7 @@ class Alien < ActiveRecord::Base
 
   def self.most_frequent_visitor
     # returns Alien with most visitations - .maximum?
-
-    Alien.all.find_by_id(Visitation.maximum(:alien_id)).name
+    Alien.all.max_by { |alien| alien.visitations.count }
   end
 
   def self.average_light_years_to_home_planet
